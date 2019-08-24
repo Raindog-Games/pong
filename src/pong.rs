@@ -10,6 +10,9 @@ pub const ARENA_HEIGHT: f32 = 100.0;
 pub const ARENA_WIDTH: f32 = 100.0;
 pub const PADDLE_HEIGHT: f32 = 16.0;
 pub const PADDLE_WIDTH: f32 = 4.0;
+pub const BALL_VELOCITY_X: f32 = 75.0;
+pub const BALL_VELOCITY_Y: f32 = 50.0;
+pub const BALL_RADIUS: f32 = 2.0;
 
 pub struct Pong;
 
@@ -19,8 +22,6 @@ impl SimpleState for Pong {
         // Load the spritesheet necessary to render the graphics.
         let sprite_sheet_handle = load_sprite_sheet(world);
         
-        world.register::<Paddle>();
-
         initialise_paddles(world, sprite_sheet_handle);
         initialise_camera(world);
     }
@@ -49,6 +50,15 @@ impl Paddle {
 }
 
 impl Component for Paddle {
+    type Storage = DenseVecStorage<Self>;
+}
+
+pub struct Ball {
+    pub velocity: [f32; 2],
+    pub radius: f32,
+}
+
+impl Component for Ball {
     type Storage = DenseVecStorage<Self>;
 }
 
