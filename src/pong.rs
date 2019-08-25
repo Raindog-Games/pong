@@ -4,9 +4,10 @@ use amethyst::{
         transform::Transform,
         timing::Time,
     },
-    ecs::prelude::{Component, DenseVecStorage},
+    ecs::prelude::{Component, DenseVecStorage, Entity},
     prelude::*,
     renderer::{Camera, ImageFormat, SpriteRender, SpriteSheet, SpriteSheetFormat, Texture},
+    ui::{Anchor, TtfFormat, UiText, UiTransform},
 };
 
 pub const ARENA_HEIGHT: f32 = 100.0;
@@ -16,6 +17,19 @@ pub const PADDLE_WIDTH: f32 = 4.0;
 pub const BALL_VELOCITY_X: f32 = 75.0;
 pub const BALL_VELOCITY_Y: f32 = 50.0;
 pub const BALL_RADIUS: f32 = 2.0;
+
+/// Scoreboard contains the actual score data.
+#[derive(Default)]
+pub struct ScoreBoard {
+    pub score_left: i32,
+    pub score_right: i32,
+}
+
+/// ScoreText contians the ui text components that display the score.
+pub struct ScoreText {
+    pub p1_score: Entity,
+    pub p2_score: Entity,
+}
 
 #[derive(Default)]
 pub struct Pong {
@@ -35,6 +49,7 @@ impl SimpleState for Pong {
 
         initialise_paddles(world, self.sprite_sheet_handle.clone().unwrap());
         initialise_camera(world);
+        initialise_scoreboard(world);
     }
 
     fn update(&mut self, data: &mut StateData<'_, GameData<'_, '_>>) -> SimpleTrans {
@@ -102,6 +117,44 @@ fn initialise_camera(world: &mut World) {
         .with(Camera::standard_2d(ARENA_WIDTH, ARENA_HEIGHT))
         .with(transform)
         .build();
+}
+
+/// Initialises a ui scoreboard.
+fn initialise_scoreboard(world: &mut World) {
+    let font = world.read_resource::<Loader>().load(
+        "font/square.ttf",
+        TtfFormat,
+        (),
+        &world.read_resource(),
+    );
+    let p1_transform = UiTransform::new(
+        "P1".to_string(), Anchor::TopMiddle, Anchor::TopMiddle, -50., -50., 1., 200., 50.,
+    );
+    let p2_transform = UiTransform::new(
+        "P2".to_string(), Anchor::TopMiddle, Anchor::TopMiddle, 50., -50., 1., 200., 50.,
+    );
+
+    let p1_score = world
+        .create_entity()
+        .with(p1_transform)
+        .with(UiText::new(
+            font.clone(),
+            "0".to_string(),
+            [1., 1., 1., 1.],
+            50.,
+        )).build();
+
+    let p2_score = world
+        .create_entity()
+        .with(p2_transform)
+        .with(UiText::new(
+            font.clone(),
+            "0".to_string(),
+            [1., 1., 1., 1.],
+            50.,
+        )).build();
+
+    world.add_resource(ScoreText { p1_score, p2_score });
 }
 
 /// Initialises one paddle on the left, and one paddle on the right.
